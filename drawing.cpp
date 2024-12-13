@@ -62,6 +62,28 @@ public:
         TTF_Quit();
         SDL_Quit();
     }
+    void drawScrollingTexture(int i,int scroll) {
+        SDL_Texture* texture=textures[i];
+        scroll=-offsetx/scroll;
+        int w,h;
+        SDL_QueryTexture(texture,NULL,NULL,&w,&h);
+        scroll=(scroll%w+w)%w;
+        SDL_Rect win;
+        SDL_Rect img;
+        if (w-scroll>h*width/height) {
+            win={0,0,width,height};
+            img={scroll,0,h*width/height,h};
+        } else {
+            int a=(w-scroll)*height/h;
+            int b=h*width/height;
+            win={a,0,width-a,height};
+            img={0,0,b-w+scroll,h};
+            SDL_RenderCopy(renderer,texture,&img,&win);
+            win={0,0,a,height};
+            img={scroll,0,w-scroll,h};
+        }
+        SDL_RenderCopy(renderer,texture,&img,&win);
+    }
     void drawBg(int i) {
         SDL_Texture* texture = textures[i];
         SDL_Rect img{0,0,0,0};

@@ -17,6 +17,7 @@ int main() {
     bool running=1;
     SDL_Event e;
     int some=0;
+    int mountains=window.loadImageOntoTexture("/home/hrishabhmittal/Pictures/pixelart/mountains.png");
     int bg=window.loadImageOntoTexture("/home/hrishabhmittal/Pictures/pixelart/background.png");
     int idleslime=window.loadImageOntoTexture("/home/hrishabhmittal/Pictures/pixelart/slime.png");
     int rrunningslime=window.loadImageOntoTexture("/home/hrishabhmittal/Pictures/pixelart/running_slime.png");
@@ -50,6 +51,7 @@ int main() {
 
         //render
         window.drawBg(bg);
+        window.drawScrollingTexture(mountains,40);
         p.render(idleslime,rrunningslime,lrunningslime,jumpingslime);
         for (int i=0;i<plats.size();i++) {
             plats[i].render(grasstiles);
