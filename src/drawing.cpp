@@ -7,9 +7,37 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
+#include <cstddef>
+#include <cstdlib>
+#include <ostream>
 #include <string>
 #include <iostream>
 #include <vector>
+#include <unordered_map>
+int integralSquareRoot(int num) {
+    if (num < 0) return -1; 
+    if (num == 0 || num == 1) return num;
+    int low = 1, high = num, result = 0;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (mid == num / mid) {
+            return mid; 
+        } else if (mid < num / mid) {
+            result = mid; 
+            low = mid + 1; 
+        } else {
+            high = mid - 1; 
+        }
+    }
+    return result; 
+}
+double calcAngle(int x1, int y1, int x2, int y2) {
+    return fmod(atan2(y2 - y1, x2 - x1) * (180.0 / M_PI) + 360.0, 360.0);
+}
+bool collide(SDL_Rect r1,SDL_Rect r2) {
+    if (r1.x+r1.w>r2.x && r2.x+r2.w>r1.x && r1.y+r1.h>r2.y && r2.y+r2.h>r1.y) return true;
+    return false;
+}
 void setFrameRate(int targetFPS) {
     static Uint32 lastTime = 0;
     Uint32 frameTime = 1000 / targetFPS;
@@ -21,6 +49,7 @@ void setFrameRate(int targetFPS) {
     lastTime = SDL_GetTicks();
 }
 class Window {
+    int frames=0;
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
     SDL_Color curcolor;
@@ -62,6 +91,70 @@ public:
         TTF_Quit();
         SDL_Quit();
     }
+    void drawTexture(int i,SDL_Rect img,SDL_Rect win) {
+        SDL_Texture* texture = textures[i];
+        win.x+=offsetx;
+        win.y+=offsety;
+        SDL_RenderCopy(renderer,texture,&img,&win);
+    }
+    void drawTexture(int i,SDL_Rect win) {
+        SDL_Texture* texture = textures[i];
+        win.x+=offsetx;
+        win.y+=offsety;
+        SDL_Rect img{0,0,0,0};
+        SDL_QueryTexture(texture,NULL,NULL,&img.w,&img.h);
+        SDL_RenderCopy(renderer,texture,&img,&win);
+    }
+    SDL_Texture* makeBeam(int i,int beamwidth,int length) {
+        int cox=offsetx,coy=offsety;
+        offsety=0,offsetx=0;
+        int cutoff=40;
+        int w,h;
+        SDL_QueryTexture(textures[i],NULL,NULL,&w,&h);
+        SDL_Texture* out=SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,length,beamwidth);
+        SDL_SetTextureBlendMode(out, SDL_BLENDMODE_BLEND);
+        SDL_SetRenderTarget(renderer,out);
+        SDL_SetRenderDrawColor(renderer,0,0,0,0);
+        SDL_RenderClear(renderer);
+        drawTexture(i,{0,0,cutoff,h},{0,0,cutoff,beamwidth});
+        drawTexture(i,{w-cutoff,0,cutoff,h},{length-cutoff,0,cutoff,beamwidth});
+        length-=2*cutoff;
+        int n=w-2*cutoff;
+        int x=cutoff;
+        if (length<0) {
+            SDL_SetRenderTarget(renderer,NULL);
+            offsetx=cox;
+            offsety=coy;
+            return out;
+        }
+        while (length>n) {
+            drawTexture(i,{cutoff,0,n,h},{x,0,n,beamwidth});
+            x+=n;
+            length-=n;
+        }
+        drawTexture(i,{cutoff,0,length,h},{x,0,length,beamwidth});
+        SDL_SetRenderTarget(renderer,NULL);
+        offsety=coy;
+        offsetx=cox;
+        return out;
+    }
+    void drawBeam(int i,int w,int x1,int y1,int x2,int y2) {
+        int d=(x1-x2)*(x1-x2)+(y1-y2)*(y1-y2);
+        SDL_Texture* tex=makeBeam(i,w,integralSquareRoot(d));
+        SDL_Rect img{0,0,0,0};
+        SDL_QueryTexture(tex,NULL,NULL,&img.w,&img.h);
+        SDL_Rect win{-img.w/2+(x2+x1)/2,-img.h/2+(y2+y1)/2,img.w,img.h};
+        SDL_Point p{img.w/2,img.h/2};
+        SDL_RenderCopyEx(renderer,tex,&img,&win,calcAngle(x1,y1,x2,y2),&p,SDL_FLIP_NONE);
+    }
+    void drawHp(int i,int now,int total) {
+        SDL_Texture* texture = textures[i];
+        SDL_Rect img{0,0,0,0};
+        SDL_Rect win{50,50,256*now/total,32};
+        SDL_QueryTexture(texture,NULL,NULL,&img.w,&img.h);
+        img.w=img.w*now/total;
+        SDL_RenderCopy(renderer,texture,&img,&win);
+    }
     void drawScrollingTexture(int i,int scroll) {
         SDL_Texture* texture=textures[i];
         scroll=-offsetx/scroll;
@@ -83,6 +176,13 @@ public:
             img={scroll,0,w-scroll,h};
         }
         SDL_RenderCopy(renderer,texture,&img,&win);
+    }
+    void animate(int i,SDL_Rect loc,int fr) {
+        int f=(frames/20)%fr;
+        SDL_Texture* texture=textures[i];
+        SDL_Rect img{0,0,0,0};
+        SDL_QueryTexture(texture,NULL,NULL,&img.w,&img.h);
+        drawTexture(i,{f*img.w/fr,0,img.w/fr,img.h},loc);
     }
     void drawBg(int i) {
         SDL_Texture* texture = textures[i];
@@ -156,20 +256,7 @@ public:
         textures.push_back(texture);
         return textures.size()-1;
     }
-    void drawTexture(int i,SDL_Rect img,SDL_Rect win) {
-        SDL_Texture* texture = textures[i];
-        win.x+=offsetx;
-        win.y+=offsety;
-        SDL_RenderCopy(renderer,texture,&img,&win);
-    }
-    void drawTexture(int i,SDL_Rect win) {
-        SDL_Texture* texture = textures[i];
-        win.x+=offsetx;
-        win.y+=offsety;
-        SDL_Rect img{0,0,0,0};
-        SDL_QueryTexture(texture,NULL,NULL,&img.w,&img.h);
-        SDL_RenderCopy(renderer,texture,&img,&win);
-    }
+
     void drawText(const std::string& text,int x,int y,const std::string& fontPath,int fontSize,SDL_Color color) {
         x+=offsetx;y+=offsety;
         TTF_Font* font = TTF_OpenFont(fontPath.c_str(),fontSize);
@@ -188,6 +275,7 @@ public:
     }
     void present() {
         SDL_RenderPresent(renderer);
+        frames++;
     }
     void clear() {
         SDL_RenderClear(renderer);
