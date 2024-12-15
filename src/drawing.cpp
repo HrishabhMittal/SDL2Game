@@ -91,6 +91,9 @@ public:
         TTF_Quit();
         SDL_Quit();
     }
+    void QueryTexture(int i,int& w,int& h) {
+            SDL_QueryTexture(textures[i],NULL,NULL,&w,&h);
+    }
     void drawTexture(int i,SDL_Rect img,SDL_Rect win) {
         SDL_Texture* texture = textures[i];
         win.x+=offsetx;

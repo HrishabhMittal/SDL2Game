@@ -34,9 +34,12 @@ public:
             p.onplat=0;
             iset=0;
         }
-        if (p.y+p.h==y && p.x+p.w>=x && p.x<=x+w) {
+        if (p.y+p.h==y && p.x+p.w>x && p.x<x+w) {
             iset=1;
             p.onplat=1;
+        } else if (iset) {
+            iset=0;
+            p.onplat=0;
         }
     }
     virtual void render() {};
@@ -72,6 +75,23 @@ public:
     pillar(int x,int y,int size,Player& p,int t): RigidBoxCollider(x,y,size,4*size,p,t) {}
     void render() override {
         window.drawTexture(t,{x,y,w,h});
+    }
+};
+class door: public RigidBoxCollider {
+public:
+    int closed=1;
+    door(int x,int y,int size,Player& p,int t): RigidBoxCollider(x,y,size,size,p,t) {}
+    void render() override {
+        if (p.inventory[1]>0 && collide({x,y,w,h},{p.x-5,p.y-5,p.w+10,p.h+10})) {
+            p.inventory[1]--;
+            closed=0;
+        }
+        if (closed && h<2*w) h++;
+        else if (!closed && h>w) h--;
+        int wi,hi;
+        window.QueryTexture(t,wi,hi);
+        window.drawTexture(t,{0,wi,wi,wi},{x,y+h-w,w,w});
+        window.drawTexture(t,{0,0,wi,wi},{x,y,w,w});
     }
 };
 #endif

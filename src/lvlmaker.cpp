@@ -115,11 +115,13 @@ public:
                     if (classstack.back()=="ptd") ptds.push_back(new PassThroughDetectors(x,y,w,h,tm.getTexture(str),window,p));
                     if (classstack.back()=="spike") ptds.push_back(new Spike(x,y,w,h,tm.getTexture(str),window,p));
                     if (classstack.back()=="platform") rbcs.push_back(new platform(x,y,w,h,p,tm.getTexture(str)));
-                } else if (classstack.back()=="box" || classstack.back()=="pillar" || classstack.back()=="onewayplat") {
+                } else if (classstack.back()=="box" || classstack.back()=="pillar" || classstack.back()=="onewayplat" || classstack.back()=="door") {
                     std::stringstream ss;
                     std::string str;
                     ss<<line;
                     ss>>x>>y>>w>>str;
+                    //if (classstack.back()=="button") rbcs.push_back(new button(x,y,w,p,tm.getTexture(str)));
+                    if (classstack.back()=="door") rbcs.push_back(new door(x,y,w,p,tm.getTexture(str)));
                     if (classstack.back()=="box") rbcs.push_back(new box(x,y,w,p,tm.getTexture(str)));
                     if (classstack.back()=="pillar") rbcs.push_back(new pillar(x,y,w,p,tm.getTexture(str)));
                     if (classstack.back()=="onewayplat") owps.push_back(new OneWayPlat(x,y,w,p,tm.getTexture(str)));

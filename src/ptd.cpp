@@ -22,6 +22,7 @@ public:
         if (!pickedup) {
             if (collide({x,y,w,h},{p.x,p.y,p.w,p.h})) {
                 pickedup=true;
+                p.inventory[ind]++;
             }
         }
     }

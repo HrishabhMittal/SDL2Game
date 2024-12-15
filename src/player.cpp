@@ -40,8 +40,8 @@ public:
         if (frame==1000) frame=0;
     }
     void setOffsets() {
-        int dx=window.Width()/4-x-window.offsetx;
-        int dy=window.Height()*3/4-y-window.offsety;
+        int dx=window.Width()/2-w/2-x-window.offsetx;
+        int dy=window.Height()/2-h/2-y-window.offsety;
         window.offsetx+=dx*0.05f;
         window.offsety+=dy*0.05f;
     }

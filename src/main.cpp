@@ -37,6 +37,9 @@ int main() {
         }
 
         //updates
+        p.handleInput(keymap,mousePressed);
+        p.update();
+        p.setOffsets();
         for (int i=0;i<rbcs.size();i++) {
             rbcs[i]->update();
         }
@@ -47,9 +50,6 @@ int main() {
         for (int i=0;i<ptds.size();i++) {
             ptds[i]->update();
         }
-        p.handleInput(keymap,mousePressed);
-        p.update();
-        p.setOffsets();
 
 
         //render
