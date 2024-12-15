@@ -23,36 +23,12 @@ public:
         return textures[textureName];
     }
 };
-//void levelMaker(std::string filename,Window& window,Player& p,std::vector<RigidBoxCollider*>& rbcs,std::vector<PassThroughDetectors*>& ptds,std::vector<OneWayPlat*>& owps) {
-//    int mountains=window.loadImageOntoTexture(PICTUREDIR "mountains.png");
-//    int bg=window.loadImageOntoTexture(PICTUREDIR "background.png");
-//    int idleslime=window.loadImageOntoTexture(PICTUREDIR "slime.png");
-//    int rrunningslime=window.loadImageOntoTexture(PICTUREDIR "running_slime.png");
-//    int lrunningslime=window.loadImageOntoTexture(PICTUREDIR "left_running_slime.png");
-//    int jumpingslime=window.loadImageOntoTexture(PICTUREDIR "jumping_slime.png");
-//    int grasstiles=window.loadImageOntoTexture(PICTUREDIR "grass.png");
-//    int boxtile=window.loadImageOntoTexture(PICTUREDIR "box.png");
-//    int manastore=window.loadImageOntoTexture(PICTUREDIR "mana.png");
-//    int manapickup=window.loadImageOntoTexture(PICTUREDIR "manapickup.png");
-//    int spike=window.loadImageOntoTexture(PICTUREDIR "spike.png");
-//    int hpbar=window.loadImageOntoTexture(PICTUREDIR "hp.png");
-//    int beam=window.loadImageOntoTexture(PICTUREDIR "beam.png");
-//    int ppillar=window.loadImageOntoTexture(PICTUREDIR "pillar.png");
-//    int vines=window.loadImageOntoTexture(PICTUREDIR "vines.png");
-//    int stonewall=window.loadImageOntoTexture(PICTUREDIR "stonewall.png");
-//    int stonewallfull=window.loadImageOntoTexture(PICTUREDIR "stonewallfull.png");
-//    int stonebrick=window.loadImageOntoTexture(PICTUREDIR "stonebrick.png");
-//    int brick=window.loadImageOntoTexture(PICTUREDIR "bricks.png");
-//    int scaffholding=window.loadImageOntoTexture(PICTUREDIR "scaffholding.png");
-//    std::ifstream file(filename);
-//    file.close();
-//}
 bool isAlpha(int i) {
     return (i>='a'&&i<='z')||(i>='A'&&i<='Z');
 }
 bool isAlpha(std::string s) {
     for (char i:s) {
-        if (!isAlpha(i)) return false;
+        if (!isAlpha(i) && i!=' ') return false;
     }
     return true;
 }
@@ -77,6 +53,9 @@ public:
         while (std::getline(file,line)) {
             if (!line.size() || line[0]=='#') continue;
             if (isAlpha(line)) {
+                std::stringstream ss;
+                ss<<line;
+                ss>>line;
                 if (line=="end") {
                     if (classstack.size()==0) panic("extra 'end' statements found");
                     classstack.pop_back();
@@ -91,6 +70,10 @@ public:
                     p.x=x;p.y=y;p.w=w;p.h=h;
                     ss>>str;
                     p.mt=tm.getTexture(str);
+                    ss>>str;
+                    p.mtlow=tm.getTexture(str);
+                    ss>>str;
+                    p.mthigh=tm.getTexture(str);
                     ss>>str;
                     p.idle=tm.getTexture(str);
                     ss>>str;

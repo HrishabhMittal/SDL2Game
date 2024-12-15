@@ -49,8 +49,13 @@ class platform: public RigidBoxCollider {
 public:
     platform(int x,int y,int w,int h,Player& p,int t): RigidBoxCollider(x,y,w,h,p,t) {}
     void render() override {
-        int ww=w/192;
-        int hh=h/192;
+        int tw,th;
+        window.QueryTexture(t,tw,th);
+        tw/=3;
+        th/=3;
+        int ww=w/tw;
+        int hh=h/th;
+        int www=w/ww,hhh=h/hh;
         for (int i=0;i<ww;i++) for (int j=0;j<hh;j++) {
             int ii,jj;
             if (i==0) ii=0;
@@ -59,7 +64,7 @@ public:
             if (j==0) jj=0;
             else if (j==hh-1) jj=2;
             else jj=1;
-            window.drawTexture(t,{ii*192,jj*192,192,192},{x+i*192,y+j*192,192,192});
+            window.drawTexture(t,{ii*tw,jj*th,tw,th},{x+i*www,y+j*hhh,www,hhh});
         }
     }
 };
@@ -86,8 +91,11 @@ public:
             p.inventory[1]--;
             closed=0;
         }
-        if (closed && h<2*w) h++;
-        else if (!closed && h>w) h--;
+        if (closed && h<2*w) h++,p.shake=1;
+        else if (!closed && h>w) h--,p.shake=1;
+        else {
+            p.shake=0;
+        }
         int wi,hi;
         window.QueryTexture(t,wi,hi);
         window.drawTexture(t,{0,wi,wi,wi},{x,y+h-w,w,w});

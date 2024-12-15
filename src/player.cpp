@@ -4,16 +4,17 @@
 #include <SDL2/SDL_keycode.h>
 class Player {
 public:
-    int hp=10,x,y,w,h,xspeed=0,frame=0,manax,manay,mt,beamon,inventory[8]={0,0,0,0,0,0,0,0};
+    int hp=10,x,y,w,h,xspeed=0,frame=0,manax,manay,mt,mthigh,mtlow,inventory[8]={0,0,0,0,0,0,0,0};
     int idle,rightrun,leftrun,jump,hpbar,beam;
     float yspeed=0.0f;
-    bool onplat=0,ponplat=0,climbing=0,down=0;
+    bool onplat=0,ponplat=0,climbing=0,down=0,beamon,beamdone=0,shake=0;
     Window& window;
     Player(Window& ww): window(ww)  {
     }
     void update() {
         manax+=(x-50-manax)/20;
         manay+=(y-50-manay)/20;
+        if (inventory[0]>3) inventory[0]=3; 
         ponplat=onplat;
         if (!onplat) {
             if (yspeed<20.0f) yspeed+=0.3f;
@@ -29,7 +30,9 @@ public:
             window.drawBeam(beam,100,x+window.offsetx+w/2,y+window.offsety+h/2,mousex,mousey);
         }
         window.drawHp(hpbar,hp,10);
-        window.animate(mt,{manax,manay,50,50},10);
+        if (inventory[0]==2) window.animate(mt,{manax,manay,50,50},10);
+        else if (inventory[0]==1) window.animate(mtlow,{manax,manay,50,50},9);
+        else if (inventory[0]==3) window.animate(mthigh,{manax,manay,50,50},2);
         if (onplat && xspeed==0) window.drawTexture(idle,{(f%4)*192,0,192,192},{x-5,y-h,w+10,h*2});
         else if (onplat) window.drawTexture(xspeed>0?rightrun:leftrun,{(f%4)*192,0,192,192},{x-2,y-h,w+10,h*2});
         else if (!onplat) {
@@ -40,10 +43,18 @@ public:
         if (frame==1000) frame=0;
     }
     void setOffsets() {
+        int i=0;
+        if (beamon && window.frames-window.beamstartframe>200) {
+            i=((window.frames-window.beamstartframe)/2)%3-1;
+            beamdone=1;
+        } else beamdone=0;
+        if (shake) {
+            i=((window.frames)/2)%3-1;
+        }
         int dx=window.Width()/2-w/2-x-window.offsetx;
         int dy=window.Height()/2-h/2-y-window.offsety;
-        window.offsetx+=dx*0.05f;
-        window.offsety+=dy*0.05f;
+        window.offsetx+=dx*0.05f+i*2;
+        window.offsety+=dy*0.05f+i*2;
     }
     void handleInput(std::unordered_map<SDL_Keycode,int>& km,int mousedown) {
         xspeed=0;

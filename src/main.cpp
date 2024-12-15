@@ -33,6 +33,7 @@ int main() {
             }
             if (e.type == SDL_MOUSEBUTTONUP) {
                 mousePressed=0;
+                window.beamstartframe=-1;
             }
         }
 

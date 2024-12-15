@@ -49,13 +49,14 @@ void setFrameRate(int targetFPS) {
     lastTime = SDL_GetTicks();
 }
 class Window {
-    int frames=0;
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
     SDL_Color curcolor;
     std::vector<SDL_Texture*> textures;
     int width,height;
 public:
+    int frames=0;
+    int beamstartframe=-1;
     int offsetx=0,offsety=0;
     Window(const std::string& title,int width,int height): width(width),height(height) {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
@@ -109,41 +110,33 @@ public:
         SDL_RenderCopy(renderer,texture,&img,&win);
     }
     SDL_Texture* makeBeam(int i,int beamwidth,int length) {
+        if (beamstartframe==-1) beamstartframe=frames;
         int cox=offsetx,coy=offsety;
         offsety=0,offsetx=0;
-        int cutoff=40;
         int w,h;
         SDL_QueryTexture(textures[i],NULL,NULL,&w,&h);
+        int cutoff=w/3;
+        int totalframes=h/cutoff;
+        int curframe=((frames-beamstartframe)/10);
+        if (curframe>=20) {
+            curframe=curframe%(totalframes-20)+20;
+        }
         SDL_Texture* out=SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,length,beamwidth);
         SDL_SetTextureBlendMode(out, SDL_BLENDMODE_BLEND);
         SDL_SetRenderTarget(renderer,out);
         SDL_SetRenderDrawColor(renderer,0,0,0,0);
         SDL_RenderClear(renderer);
-        drawTexture(i,{0,0,cutoff,h},{0,0,cutoff,beamwidth});
-        drawTexture(i,{w-cutoff,0,cutoff,h},{length-cutoff,0,cutoff,beamwidth});
-        length-=2*cutoff;
-        int n=w-2*cutoff;
-        int x=cutoff;
-        if (length<0) {
-            SDL_SetRenderTarget(renderer,NULL);
-            offsetx=cox;
-            offsety=coy;
-            return out;
-        }
-        while (length>n) {
-            drawTexture(i,{cutoff,0,n,h},{x,0,n,beamwidth});
-            x+=n;
-            length-=n;
-        }
-        drawTexture(i,{cutoff,0,length,h},{x,0,length,beamwidth});
+        drawTexture(i,{0,curframe*cutoff,cutoff,cutoff},{0,0,beamwidth,beamwidth});
+        drawTexture(i,{cutoff,curframe*cutoff,cutoff,cutoff},{beamwidth,0,length-2*beamwidth,beamwidth});
+        drawTexture(i,{2*cutoff,curframe*cutoff,cutoff,cutoff},{length-beamwidth,0,beamwidth,beamwidth});
         SDL_SetRenderTarget(renderer,NULL);
         offsety=coy;
         offsetx=cox;
         return out;
     }
     void drawBeam(int i,int w,int x1,int y1,int x2,int y2) {
-        int d=(x1-x2)*(x1-x2)+(y1-y2)*(y1-y2);
-        SDL_Texture* tex=makeBeam(i,w,integralSquareRoot(d));
+        int d=integralSquareRoot((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+        SDL_Texture* tex=makeBeam(i,w,d);
         SDL_Rect img{0,0,0,0};
         SDL_QueryTexture(tex,NULL,NULL,&img.w,&img.h);
         SDL_Rect win{-img.w/2+(x2+x1)/2,-img.h/2+(y2+y1)/2,img.w,img.h};
