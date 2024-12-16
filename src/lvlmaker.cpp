@@ -114,6 +114,23 @@ public:
                     ss<<line;
                     ss>>x>>y>>w>>h>>a>>str;
                     ptds.push_back(new Pickups(x,y,w,h,a,tm.getTexture(str),window,p));
+                } else if (classstack.back()=="unifiedrbcs") {
+                    std::stringstream ss;
+                    std::string str,str2,str3,str4;
+                    ss<<line;
+                    ss>>x>>y>>w>>h;
+                    str="";
+                    std::vector<std::string> plan;
+                    while (true) {
+                        std::getline(file,str);
+                        if (str!="done") plan.push_back(str);
+                        else break;
+                    }
+                    ss>>str>>str2>>str3>>str4;
+                    UnifiedRbcs unp(x,y,w,h,tm.getTexture(str),tm.getTexture(str2),tm.getTexture(str3),tm.getTexture(str4),plan,p);
+                    for (int i=0;i<unp.rbcs.size();i++) {
+                        rbcs.push_back(unp.rbcs[i]);
+                    }
                 }
             }
         }

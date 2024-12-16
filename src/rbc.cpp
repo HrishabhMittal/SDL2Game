@@ -2,6 +2,10 @@
 #define WALL
 #include "drawing.cpp"
 #include "player.cpp"
+#include <SDL2/SDL_pixels.h>
+#include <SDL2/SDL_rect.h>
+#include <string>
+#include <vector>
 class RigidBoxCollider {
 public:
     int x,y,w,h,t;
@@ -100,6 +104,101 @@ public:
         window.QueryTexture(t,wi,hi);
         window.drawTexture(t,{0,wi,wi,wi},{x,y+h-w,w,w});
         window.drawTexture(t,{0,0,wi,wi},{x,y,w,w});
+    }
+};
+bool operator==(const SDL_Rect& one,const SDL_Rect& other) {
+    return one.x == other.x && one.y == other.y && one.w==other.w && one.h==other.h;
+}
+bool operator!=(const SDL_Rect& one,const SDL_Rect& other) {
+    return one.x != other.x || one.y != other.y || one.w!=other.w || one.h!=other.h;
+}
+class UnifiedRbcs {
+public:
+    std::vector<RigidBoxCollider*> rbcs;
+    UnifiedRbcs(int x,int y,int w,int h,int tex,int tex2,int tex3,int tex4,std::vector<std::string> plan,Player& p,char platchar='#',char pillarchar='|',char boxchar='O',char doorchar='%') {
+        std::vector<SDL_Rect> rects,r2,r3,r4;
+        char prev=0;
+        for (int i=0;i<plan.size();i++) {
+            prev=0;
+            for (int j=0;j<plan[i].size();j++) {
+                if (plan[i][j]==platchar) {
+                    if (prev==platchar) rects.back().w++;
+                    else rects.push_back({j,i,1,1});
+                }
+                if (plan[i][j]==pillarchar) {
+                    if (prev==pillarchar) r2.back().w++;
+                    else r2.push_back({j,i,1,1});
+                }
+                if (plan[i][j]==boxchar) {
+                    if (prev==boxchar) r3.back().w++;
+                    else r3.push_back({j,i,1,1});
+                }
+                if (plan[i][j]==doorchar) {
+                    if (prev==doorchar) r4.back().w++;
+                    else r4.push_back({j,i,1,1});
+                }
+                prev=plan[i][j];
+            }
+        }
+        SDL_Rect done={-1,-1,-1,-1};
+        for (int i=0;i<rects.size();i++) {
+            for (int j=i+1;j<rects.size();j++) {
+                if (rects[i]==done || rects[j]==done) continue;
+                if (rects[i].x==rects[j].x && rects[i].w==rects[j].w && rects[i].y+rects[i].h==rects[j].y) {
+                    rects[i].h+=rects[j].h;
+                    rects[j]=done;
+                }
+            }
+        }
+        for (int i=0;i<r2.size();i++) {
+            for (int j=i+1;j<r2.size();j++) {
+                if (r2[i]==done || r2[j]==done) continue;
+                if (r2[i].x==r2[j].x && r2[i].w==r2[j].w && r2[i].y+r2[i].h==r2[j].y) {
+                    r2[i].h+=r2[j].h;
+                    r2[j]=done;
+                }
+            }
+        }
+        for (int i=0;i<r3.size();i++) {
+            for (int j=i+1;j<r3.size();j++) {
+                if (r3[i]==done || r3[j]==done) continue;
+                if (r3[i].x==r3[j].x && r3[i].w==r3[j].w && r3[i].y+r3[i].h==r3[j].y) {
+                    r3[i].h+=r3[j].h;
+                    r3[j]=done;
+                }
+            }
+        }
+        for (int i=0;i<r4.size();i++) {
+            for (int j=i+1;j<r4.size();j++) {
+                if (r4[i]==done || r4[j]==done) continue;
+                if (r4[i].x==r4[j].x && r4[i].w==r4[j].w && r4[i].y+r4[i].h==r4[j].y) {
+                    r4[i].h+=r4[j].h;
+                    r4[j]=done;
+                }
+            }
+        }
+        int scalex=w/plan[0].size();
+        int scaley=h/plan.size();
+        for (int i=0;i<rects.size();i++) {
+            if (rects[i]!=done) {
+                rbcs.push_back(new platform(x+rects[i].x*scalex,y+rects[i].y*scaley,rects[i].w*scalex,rects[i].h*scaley,p,tex));
+            }
+        }
+        for (int i=0;i<r2.size();i++) {
+            if (r2[i]!=done) {
+                rbcs.push_back(new pillar(x+r2[i].x*scalex,y+r2[i].y*scaley,r2[i].w*scalex,p,tex2));
+            }
+        }
+        for (int i=0;i<r3.size();i++) {
+            if (r3[i]!=done) {
+                rbcs.push_back(new box(x+r3[i].x*scalex,y+r3[i].y*scaley,r3[i].w*scalex,p,tex3));
+            }
+        }
+        for (int i=0;i<r3.size();i++) {
+            if (r4[i]!=done) {
+                rbcs.push_back(new door(x+r4[i].x*scalex,y+r4[i].y*scaley,r4[i].w*scalex,p,tex4));
+            }
+        }
     }
 };
 #endif

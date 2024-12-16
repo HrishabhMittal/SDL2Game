@@ -1,0 +1,64 @@
+player
+    400 100 80 40 mana mana_low mana_high slime running_slime left_running_slime jumping_slime hp beam4
+end
+
+platform
+    10 300 700 400 grass
+    900 400 960 384 grass
+    1860 500 960 384 grass
+    900 -400 1920 384 grass 
+end
+
+door 
+    950 0 200 door
+end
+
+
+box
+    400  200 100 stonebrick
+    1400 300 100 box
+    1860 400 100 bricks
+    1860 300 100 box
+    1860 200 100 bricks
+end
+
+pillar
+    2210 100 100 pillar 
+    100 -100 100 pillar
+    100 -500 100 pillar
+end
+
+pickup
+    1600 -450 25 50 0 manapickup
+    1300 -450 25 50 0 manapickup
+    1300 350 25 50 0 manapickup
+    1250 150 25 50 1 key
+end
+
+spike
+    1500 350 50 60 spike
+    1550 350 50 60 spike
+    1600 350 50 60 spike
+    1650 350 50 60 spike
+    1700 350 50 60 spike
+    1750 350 50 60 spike
+    1800 350 50 60 spike
+    1960 450 50 60 spike
+    2010 450 50 60 spike
+    2060 450 50 60 spike
+    2110 450 50 60 spike
+    2160 450 50 60 spike
+end
+vines
+    2100 -100 100 500 vines
+    2000 -100 100 500 vines
+    1900 -100 100 500 vines
+end
+
+onewayplat
+    2310 300 200 scaffholding
+    220  100 200 scaffholding
+    320 -100 200 scaffholding
+    420 -300 200 scaffholding
+    520 -500 200 scaffholding
+end
