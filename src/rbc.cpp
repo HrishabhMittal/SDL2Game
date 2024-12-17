@@ -106,97 +106,48 @@ public:
         window.drawTexture(t,{0,0,wi,wi},{x,y,w,w});
     }
 };
-bool operator==(const SDL_Rect& one,const SDL_Rect& other) {
-    return one.x == other.x && one.y == other.y && one.w==other.w && one.h==other.h;
-}
-bool operator!=(const SDL_Rect& one,const SDL_Rect& other) {
-    return one.x != other.x || one.y != other.y || one.w!=other.w || one.h!=other.h;
-}
+
 class UnifiedRbcs {
 public:
     std::vector<RigidBoxCollider*> rbcs;
-    UnifiedRbcs(int x,int y,int w,int h,int tex,int tex2,int tex3,int tex4,std::vector<std::string> plan,Player& p,char platchar='#',char pillarchar='|',char boxchar='O',char doorchar='%') {
-        std::vector<SDL_Rect> rects,r2,r3,r4;
+    UnifiedRbcs(int x,int y,int w,int h,int tex,int tex2,int tex3,int tex4,std::vector<std::string> plan,Player& p) {
+        std::string chars="#|O%";
+        std::vector<std::vector<SDL_Rect>> vrects(4);
+        std::vector<int> texs{tex,tex2,tex3,tex4};
         char prev=0;
+        int scalex=w/plan[0].size();
+        int scaley=h/plan.size();
+        SDL_Rect done={-1,-1,-1,-1};
         for (int i=0;i<plan.size();i++) {
             prev=0;
             for (int j=0;j<plan[i].size();j++) {
-                if (plan[i][j]==platchar) {
-                    if (prev==platchar) rects.back().w++;
-                    else rects.push_back({j,i,1,1});
-                }
-                if (plan[i][j]==pillarchar) {
-                    if (prev==pillarchar) r2.back().w++;
-                    else r2.push_back({j,i,1,1});
-                }
-                if (plan[i][j]==boxchar) {
-                    if (prev==boxchar) r3.back().w++;
-                    else r3.push_back({j,i,1,1});
-                }
-                if (plan[i][j]==doorchar) {
-                    if (prev==doorchar) r4.back().w++;
-                    else r4.push_back({j,i,1,1});
+                for (int k=0;k<vrects.size();k++) {
+                     if (plan[i][j]==chars[k]) {
+                        if (prev==chars[k]) vrects[k].back().w++;
+                        else vrects[k].push_back({j,i,1,1});
+                    }
                 }
                 prev=plan[i][j];
             }
         }
-        SDL_Rect done={-1,-1,-1,-1};
-        for (int i=0;i<rects.size();i++) {
-            for (int j=i+1;j<rects.size();j++) {
-                if (rects[i]==done || rects[j]==done) continue;
-                if (rects[i].x==rects[j].x && rects[i].w==rects[j].w && rects[i].y+rects[i].h==rects[j].y) {
-                    rects[i].h+=rects[j].h;
-                    rects[j]=done;
+        for (int k=0;k<vrects.size();k++) {
+            for (int i=0;i<vrects[k].size();i++) {
+                for (int j=i+1;j<vrects[k].size();j++) {
+                    if (vrects[k][i]==done || vrects[k][j]==done) continue;
+                    if (vrects[k][i].x==vrects[k][j].x && vrects[k][i].w==vrects[k][j].w && vrects[k][i].y+vrects[k][i].h==vrects[k][j].y) {
+                        vrects[k][i].h+=vrects[k][j].h;
+                        vrects[k][j]=done;
+                    }
                 }
             }
-        }
-        for (int i=0;i<r2.size();i++) {
-            for (int j=i+1;j<r2.size();j++) {
-                if (r2[i]==done || r2[j]==done) continue;
-                if (r2[i].x==r2[j].x && r2[i].w==r2[j].w && r2[i].y+r2[i].h==r2[j].y) {
-                    r2[i].h+=r2[j].h;
-                    r2[j]=done;
+            for (int i=0;i<vrects[k].size();i++) {
+                if (vrects[k][i]!=done) {
+                    if (chars[k]=='#') rbcs.push_back(new platform(x+vrects[k][i].x*scalex,y+vrects[k][i].y*scaley,vrects[k][i].w*scalex,vrects[k][i].h*scaley,p,texs[k]));
+                    else if (chars[k]=='|') rbcs.push_back(new pillar(x+vrects[k][i].x*scalex,y+vrects[k][i].y*scaley,vrects[k][i].w*scalex,p,texs[k]));
+                    else if (chars[k]=='O') rbcs.push_back(new box(x+vrects[k][i].x*scalex,y+vrects[k][i].y*scaley,vrects[k][i].w*scalex,p,texs[k]));
+                    else if (chars[k]=='%') rbcs.push_back(new door(x+vrects[k][i].x*scalex,y+vrects[k][i].y*scaley,vrects[k][i].w*scalex,p,texs[k]));
+
                 }
-            }
-        }
-        for (int i=0;i<r3.size();i++) {
-            for (int j=i+1;j<r3.size();j++) {
-                if (r3[i]==done || r3[j]==done) continue;
-                if (r3[i].x==r3[j].x && r3[i].w==r3[j].w && r3[i].y+r3[i].h==r3[j].y) {
-                    r3[i].h+=r3[j].h;
-                    r3[j]=done;
-                }
-            }
-        }
-        for (int i=0;i<r4.size();i++) {
-            for (int j=i+1;j<r4.size();j++) {
-                if (r4[i]==done || r4[j]==done) continue;
-                if (r4[i].x==r4[j].x && r4[i].w==r4[j].w && r4[i].y+r4[i].h==r4[j].y) {
-                    r4[i].h+=r4[j].h;
-                    r4[j]=done;
-                }
-            }
-        }
-        int scalex=w/plan[0].size();
-        int scaley=h/plan.size();
-        for (int i=0;i<rects.size();i++) {
-            if (rects[i]!=done) {
-                rbcs.push_back(new platform(x+rects[i].x*scalex,y+rects[i].y*scaley,rects[i].w*scalex,rects[i].h*scaley,p,tex));
-            }
-        }
-        for (int i=0;i<r2.size();i++) {
-            if (r2[i]!=done) {
-                rbcs.push_back(new pillar(x+r2[i].x*scalex,y+r2[i].y*scaley,r2[i].w*scalex,p,tex2));
-            }
-        }
-        for (int i=0;i<r3.size();i++) {
-            if (r3[i]!=done) {
-                rbcs.push_back(new box(x+r3[i].x*scalex,y+r3[i].y*scaley,r3[i].w*scalex,p,tex3));
-            }
-        }
-        for (int i=0;i<r3.size();i++) {
-            if (r4[i]!=done) {
-                rbcs.push_back(new door(x+r4[i].x*scalex,y+r4[i].y*scaley,r4[i].w*scalex,p,tex4));
             }
         }
     }

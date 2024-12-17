@@ -14,6 +14,12 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+bool operator==(const SDL_Rect& one,const SDL_Rect& other) {
+    return one.x == other.x && one.y == other.y && one.w==other.w && one.h==other.h;
+}
+bool operator!=(const SDL_Rect& one,const SDL_Rect& other) {
+    return one.x != other.x || one.y != other.y || one.w!=other.w || one.h!=other.h;
+}
 int integralSquareRoot(int num) {
     if (num < 0) return -1; 
     if (num == 0 || num == 1) return num;

@@ -94,9 +94,9 @@ public:
                     ss<<line;
                     ss>>x>>y>>w>>h>>str;
                     if (classstack.back()=="rbc") rbcs.push_back(new RigidBoxCollider(x,y,w,h,p,tm.getTexture(str)));
-                    if (classstack.back()=="vines") ptds.push_back(new Vines(x,y,w,h,tm.getTexture(str),window,p));
-                    if (classstack.back()=="ptd") ptds.push_back(new PassThroughDetectors(x,y,w,h,tm.getTexture(str),window,p));
-                    if (classstack.back()=="spike") ptds.push_back(new Spike(x,y,w,h,tm.getTexture(str),window,p));
+                    if (classstack.back()=="vines") ptds.push_back(new Vines(x,y,w,h,p,tm.getTexture(str)));
+                    if (classstack.back()=="ptd") ptds.push_back(new PassThroughDetectors(x,y,w,h,tm.getTexture(str),p));
+                    if (classstack.back()=="spike") ptds.push_back(new Spike(x,y,w,h,p,tm.getTexture(str)));
                     if (classstack.back()=="platform") rbcs.push_back(new platform(x,y,w,h,p,tm.getTexture(str)));
                 } else if (classstack.back()=="box" || classstack.back()=="pillar" || classstack.back()=="onewayplat" || classstack.back()=="door") {
                     std::stringstream ss;
@@ -113,8 +113,8 @@ public:
                     std::string str;
                     ss<<line;
                     ss>>x>>y>>w>>h>>a>>str;
-                    ptds.push_back(new Pickups(x,y,w,h,a,tm.getTexture(str),window,p));
-                } else if (classstack.back()=="unifiedrbcs") {
+                    ptds.push_back(new Pickups(x,y,w,h,a,p,tm.getTexture(str)));
+                } else if (classstack.back()=="unified") {
                     std::stringstream ss;
                     std::string str,str2,str3,str4;
                     ss<<line;
@@ -128,8 +128,13 @@ public:
                     }
                     ss>>str>>str2>>str3>>str4;
                     UnifiedRbcs unp(x,y,w,h,tm.getTexture(str),tm.getTexture(str2),tm.getTexture(str3),tm.getTexture(str4),plan,p);
+                    ss>>str>>str2>>str3;
                     for (int i=0;i<unp.rbcs.size();i++) {
                         rbcs.push_back(unp.rbcs[i]);
+                    }
+                    UnifiedPtds un(x,y,w,h,tm.getTexture(str),tm.getTexture(str2),tm.getTexture(str3),0,plan,p);
+                    for (int i=0;i<un.ptds.size();i++) {
+                        ptds.push_back(un.ptds[i]);
                     }
                 }
             }
